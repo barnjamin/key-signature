@@ -59,9 +59,8 @@ def main(keysig="keysig", app_id=None):
     keys = get_random_keys(2)
     for key in keys:
         lsa = ksig.populate(key)
-
         sig_addr = lsa.address()
-        print("For key {} address is {}".format(key, sig_addr))
+        print("Creating key {} with addres {}".format(key, sig_addr))
 
         # Create new key
         sp = client.suggested_params()
@@ -81,7 +80,7 @@ def main(keysig="keysig", app_id=None):
     for key in keys:
         lsa = ksig.populate(key)
         sig_addr = lsa.address()
-        print("For key {} address is {}".format(key, sig_addr))
+        print("Deleting key {} with addresss {}".format(key, sig_addr))
 
         sp = client.suggested_params()
 
@@ -189,7 +188,9 @@ def send(name, signed_group, debug=False):
 def get_random_keys(num: int):
     import random
     import string
+    import time
 
+    random.seed(int(time.time()))
     keys = []
     for _ in range(num):
         # printing lowercase
@@ -200,4 +201,4 @@ def get_random_keys(num: int):
 
 
 if __name__ == "__main__":
-    main(app_id=1)
+    main()
