@@ -6,8 +6,7 @@ from pytealutils.strings.string import encode_uvarint
 
 
 hash_prefix = Bytes("Program")
-seed_amt = int(1e6) + int(5e3)
-
+seed_amt = int(1e6) + int(3e3)
 
 def approval(key_src_map):
     sig_bytes = Bytes("base64", key_src_map["bytecode"])
