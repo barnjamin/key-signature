@@ -1,0 +1,5 @@
+#pragma version 6
+pushbytes TMPL_KEY // TMPL_KEY
+pop
+pushint 1 // 1
+return

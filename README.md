@@ -1,11 +1,18 @@
-# Contract Interface
+# Key Signature
 
-install pyteal and pyteal-utils
+Project setup starts by installing the [sandbox](https://github.com/algorand/sandbox)
 
-install assembly-map branch
-
+Then:
+```sh
+git clone git@github.com:barnjamin/key-signature.git
+cd key-signature
+python -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
 ```
-python key_sig.py
-goal clerk compile -m keysig.tmpl.teal
-python app.py
+
+Run it with
+```sh
+python main.py
 ```
+
