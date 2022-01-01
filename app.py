@@ -6,7 +6,7 @@ from pytealutils.strings import prefix, suffix
 hash_prefix = Bytes("Program")
 
 
-with open("keysig.tmpl.teal.map.json", "r") as f:
+with open("keysig.json", "r") as f:
     key_src_map = json.loads(f.read())
 
 

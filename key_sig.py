@@ -7,4 +7,4 @@ def keysig():
 
 if __name__ == "__main__":
     with open("keysig.teal.tmpl", "w") as f:
-        f.write(compileTeal(keysig(), mode=Mode.Signature, version=5))
+        f.write(compileTeal(keysig(), mode=Mode.Signature, version=5, assembleConstants=True))
