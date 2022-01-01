@@ -1,5 +1,4 @@
 # Contract Interface
---------------------
 
 install pyteal and pyteal-utils
 

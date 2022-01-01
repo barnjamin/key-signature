@@ -1,1 +1,1 @@
-{"name":"keysig.teal.tmpl","version":5,"source":"BYAASIEBQw==","template_labels":{"TMPL_KEY":{"source_line":2,"position":2,"bytes":true}},"label_map":{},"line_map":[0,1,3,4,6]}
+{"name":"keysig.tmpl.teal","version":5,"source":"","bytecode":"BYAASIEBQw==","template_labels":{"TMPL_KEY":{"source_line":2,"position":2,"bytes":true}},"label_map":{},"line_map":[0,1,3,4,6]}
