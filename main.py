@@ -17,12 +17,19 @@ client = algod.AlgodClient(token, url)
 
 
 class KeySig:
+    """KeySig class reads in a json map containing assembly details of a template smart signature and allows you to populate it with the variables
+
+    In this case we are only interested in a single variable, the key which is a byte string to make the address unique.
+    In this demo we're using random strings but in practice you can choose something meaningful to your application
+    """
+
     def __init__(self, name):
         # Read the source map
         with open("{}.json".format(name)) as f:
             self.map = json.loads(f.read())
 
     def populate(self, value: str) -> LogicSigAccount:
+        """populate uses the map to fill in the variable of the bytecode and returns a logic sig with the populated bytecode"""
         # Get the template source
         src = list(base64.b64decode(self.map["bytecode"]))
         # Get the position of TMPL_KEY in the assembled bytecode
@@ -54,27 +61,30 @@ def main(keysig="keysig", app_id=None):
     app_addr = logic.get_application_address(app_id)
     print("Application Address {}".format(app_addr))
 
-    # Get some keys
-
+    # Get some keys, we're getting random keys here
+    # in practice you should choose something meaningful for your application
+    # Ex: for an account and asset pair  "{}-{}-{}".format(address,asset1,asset2)
     keys = get_random_keys(2)
     for key in keys:
+        # Populate the bytecode of the smart sig with the key
         lsa = ksig.populate(key)
         sig_addr = lsa.address()
         print("Creating key {} with addres {}".format(key, sig_addr))
 
-        # Create new key
         sp = client.suggested_params()
 
+        # Assemble necessary transactions
         seed_txn = PaymentTxn(addr, sp, sig_addr, seed_amt)
         optin_txn = ApplicationOptInTxn(sig_addr, sp, app_id, [key])
         rekey_txn = PaymentTxn(sig_addr, sp, sig_addr, 0, None, None, None, app_addr)
-
         assign_group_id([seed_txn, optin_txn, rekey_txn])
 
+        # Sign 'em
         signed_seed = seed_txn.sign(sk)
         signed_optin = LogicSigTransaction(optin_txn, lsa)
         signed_rekey = LogicSigTransaction(rekey_txn, lsa)
 
+        # Send 'em
         send("create", [signed_seed, signed_optin, signed_rekey])
 
     for key in keys:
@@ -84,16 +94,18 @@ def main(keysig="keysig", app_id=None):
 
         sp = client.suggested_params()
 
+        # Assemble the necessary transactions
         rekey_txn = ApplicationNoOpTxn(addr, sp, app_id, [key], [sig_addr])
         closeout_txn = ApplicationCloseOutTxn(sig_addr, sp, app_id)
         closeto_txn = PaymentTxn(sig_addr, sp, addr, 0, addr)
-
         assign_group_id([rekey_txn, closeout_txn, closeto_txn])
 
+        # Sign 'em
         signed_rekey = rekey_txn.sign(sk)
         signed_closeout = LogicSigTransaction(closeout_txn, lsa)
         signed_closeto = LogicSigTransaction(closeto_txn, lsa)
 
+        # Send 'em
         send("delete", [signed_rekey, signed_closeout, signed_closeto])
 
 
@@ -114,7 +126,7 @@ def update_app(id, addr, sk, source_map):
     # Sign it
     signed_txn = update_txn.sign(sk)
 
-    # Ship it
+    # Send it
     txid = client.send_transaction(signed_txn)
 
     # Wait for the result so we can return the app id
@@ -145,7 +157,7 @@ def create_app(addr, sk, source_map):
     # Sign it
     signed_txn = create_txn.sign(sk)
 
-    # Ship it
+    # Send it
     txid = client.send_transaction(signed_txn)
 
     # Wait for the result so we can return the app id
@@ -155,7 +167,7 @@ def create_app(addr, sk, source_map):
 
     app_addr = logic.get_application_address(app_id)
 
-    # Fund the app addr
+    # Don't forget to fund the app addr
     sp = client.suggested_params()
     pay_txn = PaymentTxn(addr, sp, app_addr, int(1e10))
     txid = client.send_transaction(pay_txn.sign(sk))
@@ -191,11 +203,10 @@ def get_random_keys(num: int):
     import time
 
     random.seed(int(time.time()))
-    keys = []
-    for _ in range(num):
-        # printing lowercase
-        letters = string.ascii_lowercase
-        keys.append("".join(random.choice(letters) for i in range(10)))
+    keys = [
+        "".join(random.choice(string.ascii_lowercase) for i in range(10))
+        for _ in range(num)
+    ]
 
     return keys
 

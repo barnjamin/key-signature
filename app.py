@@ -5,7 +5,10 @@ from pytealutils.strings import prefix, suffix
 from pytealutils.strings.string import encode_uvarint
 
 
+# Domain separator used when generating key sig address
 hash_prefix = Bytes("Program")
+
+# Number of microalgos to seed key sig account
 seed_amt = int(1e6) + int(3e3)
 
 
@@ -25,10 +28,16 @@ def approval(key_src_map):
         return Sha512_256(
             Concat(
                 hash_prefix,
-                prefix(sig_bytes, key_idx),
-                encode_uvarint(Len(key), Bytes("")),
+                prefix(
+                    sig_bytes, key_idx
+                ),  # Take the bytes up to where the key should be
+                encode_uvarint(
+                    Len(key), Bytes("")
+                ),  # The length of the bytestring is encoded as uvarint
                 key,
-                suffix(sig_bytes, Len(sig_bytes) - key_idx - Int(1)),
+                suffix(
+                    sig_bytes, Len(sig_bytes) - key_idx - Int(1)
+                ),  # append the bytes from the key onward
             )
         )
 
@@ -54,9 +63,12 @@ def approval(key_src_map):
             rekey.sender() == optin.sender(),
         )
 
+        # This should be inspected in practice to make sure its a valid key for a given application
         key = optin.application_args[0]
         return Seq(
+            # Txn look right?
             Assert(well_formed_txn),
+            # The address for the key matches the account trying to opt in?
             key_address(key) == optin.sender(),
         )
 
@@ -82,11 +94,11 @@ def approval(key_src_map):
 
         key = rekey_trigger.application_args[0]
         return Seq(
-            # Check the txn is valid
+            # Txn look right?
             Assert(well_formed_txn),
             # Make sure we're rekeying the right key
             Assert(key_address(key) == close_to.sender()),
-            # Submit rekey back to original addr
+            # Submit rekey back to original addr (This is triggered by the rekey_trigger transaction only)
             InnerTxnBuilder.Begin(),
             InnerTxnBuilder.SetFields(
                 {
@@ -102,11 +114,26 @@ def approval(key_src_map):
 
     return Cond(
         [Txn.application_id() == Int(0), Approve()],
-        [Txn.on_completion() == OnComplete.DeleteApplication, Approve()],
-        [Txn.on_completion() == OnComplete.UpdateApplication, Approve()],
-        [Txn.on_completion() == OnComplete.CloseOut, Approve()],
-        [Txn.on_completion() == OnComplete.OptIn, Return(create_key())],
-        [Txn.on_completion() == OnComplete.NoOp, Return(delete_key())],
+        [
+            Txn.on_completion() == OnComplete.DeleteApplication,
+            Approve(),
+        ],  # just for demo purposes
+        [
+            Txn.on_completion() == OnComplete.UpdateApplication,
+            Approve(),
+        ],  # just for demo purposes
+        [
+            Txn.on_completion() == OnComplete.CloseOut,
+            Approve(),
+        ],  # just for demo purposes
+        [
+            Txn.on_completion() == OnComplete.OptIn,
+            Return(create_key()),
+        ],  # Check its a valid optin
+        [
+            Txn.on_completion() == OnComplete.NoOp,
+            Return(delete_key()),
+        ],  # Check its a valid delete
     )
 
 
